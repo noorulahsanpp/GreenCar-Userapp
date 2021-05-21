@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/cupertino.dart';
@@ -16,6 +17,7 @@ class RegistrationScreen extends StatelessWidget {
   TextEditingController _passwordTextEditingController =
       TextEditingController();
   DatabaseReference usersRef = FirebaseUtil.createDatabaseReference();
+  CollectionReference users = FirebaseFirestore.instance.collection('users');
 
   @override
   Widget build(BuildContext context) {
@@ -167,12 +169,14 @@ class RegistrationScreen extends StatelessWidget {
     }))
         .user;
     if (user != null) {
-      Map userDataMap = {
+      Map<String, String> userDataMap = {
         "name": _nameTextEditingController.text.trim(),
         "email": _emailTextEditingController.text.trim(),
         "phone": _phoneTextEditingController.text.trim(),
       };
 
+      users.doc(user.uid).set(userDataMap).then((value) => print("User Added"))
+          .catchError((error) => print("Failed to add user: $error"));
       usersRef.child(user.uid).set(userDataMap);
       Util.displayToastMessage(
           "Your account has been created successfully", context);

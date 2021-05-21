@@ -1,11 +1,18 @@
 import 'dart:async';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:geocoder/geocoder.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:provider/provider.dart';
+import 'package:user_app/allscreens/loginscreen.dart';
+import 'package:user_app/allscreens/searchscreen.dart';
 import 'package:user_app/allwidgets/divider.dart';
+import 'package:user_app/assistants/requestAssistant.dart';
+import 'package:user_app/datahandler/appData.dart';
+import 'package:user_app/models/address.dart' as ad;
 
 class MainScreen extends StatefulWidget {
 
@@ -25,8 +32,9 @@ class _MainScreenState extends State<MainScreen> {
 
   Position currentPosition;
   var geoLocator = Geolocator();
-String _address;
+  String _address;
   double bottomPaddingofMap = 0;
+  Address ad;
 
   void locatePosition()async{
     Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
@@ -36,11 +44,24 @@ String _address;
     CameraPosition cameraPosition = new CameraPosition(target: latLngPosition, zoom:14);
 
     newGoogleMapController.animateCamera(CameraUpdate.newCameraPosition(cameraPosition));
-    _getAddress(currentPosition.latitude, currentPosition.longitude).then((value) => {
+    // _getAddress(currentPosition.latitude, currentPosition.longitude).then((value) => {
+    //
+    // setState(() {
+    //   ad.Address as = new ad.Address(latitude: position.latitude.toString(), longitude: position.longitude.toString(), placeName: value.first.addressLine);
+    //   _address = "${value.first.addressLine}";
+    //
+    // })
+    // });
+    String address = await RequestAssistant.getAddress(currentPosition.latitude, currentPosition.longitude, context);
     setState(() {
-    _address = "${value.first.addressLine}";
-    })
+      _address = address;
     });
+    // print("sadddddddddddddddddd${Provider.of<AppData>(context).pickUpLocation.placeName}");
+    // await RequestAssistant.getAddress(currentPosition.latitude, currentPosition.longitude).then((value) => {
+    //   setState((){
+    //     print("afffffffffffffffffffffffffff${value.first.addressLine}");
+    //   })
+    // });
 
   }
 
@@ -110,6 +131,19 @@ String _address;
                 title: Text("About", style: TextStyle(
                     fontSize: 15
                 ),),
+              ),
+              GestureDetector(
+                onTap: (){
+                  FirebaseAuth.instance.signOut();
+                  Navigator.pushNamedAndRemoveUntil(context, LoginScreen.idScreen, (route) => false);
+                },
+                child: ListTile(
+                  leading: Icon(Icons.info,
+                  ),
+                  title: Text("Logout", style: TextStyle(
+                      fontSize: 15
+                  ),),
+                ),
               ),
             ],
           ),
@@ -199,27 +233,32 @@ String _address;
                   SizedBox(
                     height: 6,
                   ),
-                  Container(
-                    decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(5),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black54,
-                            blurRadius: 6,
-                            spreadRadius: 0.5,
-                            offset: Offset(0.7,0.7),
-                          )
-                        ]
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(12.0),
-                      child: Row(
-                        children: [
-                          Icon(Icons.search, color: Colors.blueAccent,),
-                          SizedBox(width: 10,),
-                          Text("Search Drop Off"),
-                        ],
+                  GestureDetector(
+                    onTap: (){
+                      Navigator.push(context, MaterialPageRoute(builder: (context)=> SearchScreen()));
+                    },
+                    child: Container(
+                      decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(5),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black54,
+                              blurRadius: 6,
+                              spreadRadius: 0.5,
+                              offset: Offset(0.7,0.7),
+                            )
+                          ]
+                      ),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Row(
+                          children: [
+                            Icon(Icons.search, color: Colors.blueAccent,),
+                            SizedBox(width: 10,),
+                            Text("Search Drop Off"),
+                          ],
+                        ),
                       ),
                     ),
                   ),
@@ -232,11 +271,13 @@ String _address;
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text("Add home"),
+                            Text(
+                              Provider.of<AppData>(context, listen: false).pickUpLocation != null ? Provider.of<AppData>(context).pickUpLocation.placeName : "Add home"
+                            ),
                             SizedBox(
                               height: 4,
                             ),
-                            Text('$_address', style: TextStyle(
+                            Text('Your living home address', style: TextStyle(
                               color: Colors.black54,
                               fontSize: 12
                             ),)
@@ -278,12 +319,12 @@ String _address;
     );
   }
 
-  Future<List<Address>> _getAddress(double lat, double lang) async {
-    final coordinates = new Coordinates(lat, lang);
-    List<Address> add =
-    await Geocoder.local.findAddressesFromCoordinates(coordinates);
-    return add;
-  }
+  // Future<List<Address>> _getAddress(double lat, double lang) async {
+  //   final coordinates = new Coordinates(lat, lang);
+  //   List<Address> add =
+  //   await Geocoder.local.findAddressesFromCoordinates(coordinates);
+  //   return add;
+  // }
 
 
 }

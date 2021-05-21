@@ -672,7 +672,10 @@ obj/
 
 ### AndroidStudio Patch ###
 
+*.json
+
 .C:\Users\Noorul\IdeaProjects\carpooling_dapp\android\app\google-services.json
+/C:\Users\Noorul\IdeaProjects\carpooling_dapp\android\app\google-services.json
 
 !/gradle/wrapper/gradle-wrapper.jar
 
