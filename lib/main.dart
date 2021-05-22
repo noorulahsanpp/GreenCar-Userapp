@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
@@ -13,6 +14,7 @@ void main() async{
   await Firebase.initializeApp();
   runApp(MyApp());
 }
+CollectionReference<Map<String, dynamic>> driverReference = FirebaseFirestore.instance.collection("hosts");
 
 // DatabaseReference _databaseReference = FirebaseDatabase.instance.reference().child("users");
 

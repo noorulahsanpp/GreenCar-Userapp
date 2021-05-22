@@ -138,6 +138,7 @@ class LoginScreen extends StatelessWidget {
     if (user != null) {
       usersRef.child(user.uid).once().then((DataSnapshot snap) {
         if (snap.value != null) {
+
           Navigator.pushNamedAndRemoveUntil(
               context, MainScreen.idScreen, (route) => false);
           Util.displayToastMessage("You're logged in", context);

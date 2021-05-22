@@ -144,7 +144,7 @@ class _SearchScreenState extends State<SearchScreen> {
                       Container(
                         child: RaisedButton(
                           child: Text("Search", style: TextStyle(
-                            color: Colors.white
+                            color: Colors.blue
                           ),),
                           onPressed: (){
                             Navigator.push(context, MaterialPageRoute(builder: (context)=> TimeLine()));
