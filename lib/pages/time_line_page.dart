@@ -1,13 +1,24 @@
 import 'dart:ui';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:geocoding/geocoding.dart';
+import 'package:user_app/allscreens/mainscreen.dart';
+import 'package:user_app/allscreens/registrationscreen.dart';
+import 'package:user_app/allwidgets/progressdialog.dart';
 import 'package:user_app/main.dart';
 import 'package:user_app/models/cars_model.dart';
 import 'package:user_app/models/ridedetailsmodel.dart';
+import 'package:user_app/util/util.dart';
 import 'package:vector_math/vector_math_64.dart' as vector;
 import 'package:flutter/material.dart';
 
 class TimeLine extends StatefulWidget {
+
+  final String toPlace;
+  final String fromPlace;
+
+  TimeLine({Key key, this.toPlace, this.fromPlace}) : super(key: key);
+
   @override
   _TimeLineState createState() => _TimeLineState();
 }
@@ -50,6 +61,39 @@ class _TimeLineState extends State<TimeLine> with TickerProviderStateMixin {
       setState(() {});
     });
   }
+  Future<void> requestTrip(BuildContext context, String tripid, String hostid) async {
+
+    showDialog(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context){
+          return ProgressDialog(message: "Setting Up, Please wait...",);
+        }
+    );
+
+    Map<String, dynamic> tripDataMap = {
+      "riderid": currentUser.userid,
+      "tripid": tripid,
+      "ridername": currentUser.name,
+      "riderphone":currentUser.phone,
+      "riderrating":currentUser.rating,
+      "hostid":hostid,
+    };
+
+    FirebaseFirestore.instance.collection('trips').doc(tripid).collection('request').add(tripDataMap).then((value) {
+      FirebaseFirestore.instance.collection("hosts").doc(hostid).collection('trips').doc(tripid).collection('requests').add(tripDataMap);
+      Util.displayToastMessage(
+          "Your Request has been created successfully", context);
+      Navigator.pushNamed(
+          context, MainScreen.idScreen);
+    }).catchError((error) => print("Failed to add request: $error"));
+
+  }
+  Future<List<Location>> findPlace(String placeName) async{
+    List<Location> locations;
+    locations = await locationFromAddress(placeName);
+    return locations;
+  }
 
   @override
   void dispose() {
@@ -77,9 +121,7 @@ class _TimeLineState extends State<TimeLine> with TickerProviderStateMixin {
               height: size.height * 0.3,
               child: Image.asset('images/greencar.png')),
           StreamBuilder<QuerySnapshot>(
-              stream: driverReference
-                  .doc("7jiHSesELjYnuq8CpKLsp27IwME3")
-                  .collection("trips")
+              stream: tripReference.where("from_place", isEqualTo: widget.fromPlace)
                   .orderBy("date")
                   .snapshots(),
               builder: (BuildContext context,
@@ -184,6 +226,8 @@ class _TimeLineState extends State<TimeLine> with TickerProviderStateMixin {
         ],
       ),
     );
+
+
   }
 
   RadialGradient _getBackground(
@@ -258,8 +302,6 @@ class _TimeLineState extends State<TimeLine> with TickerProviderStateMixin {
       value = lerpDouble(1, 2, (controllerValue - 0.5));
     }
 
-    final String loremText =
-        "\n\nDescription \n\n Est ei erat mucius quaeque. Ei his quas phaedrum, efficiantur mediocritatem ne sed, hinc oratio blandit ei sed. Blandit gloriatur eam et. Brute noluisse per et, verear disputando neglegentur at quo. Sea quem legere ei, unum soluta ne duo. Ludus complectitur quo te, ut vide autem homero pro. In mel saperet expetendis. Vitae urbanitas sadipscing nec ut, at vim quis lorem labitur. Exerci electram has et, vidit solet tincidunt quo ad, moderatius contentiones nec no. Nam et puto abhorreant scripserit, et cum inimicus accusamus. Virtute equidem ceteros in mel. Id volutpat neglegentur eos. Eu eum facilisis voluptatum, no eam albucius verterem. Sit congue platonem adolescens ut. Offendit reprimique et has, eu mei homero imperdiet.";
     return Column(
       children: [
         Container(
@@ -304,7 +346,9 @@ class _TimeLineState extends State<TimeLine> with TickerProviderStateMixin {
               minWidth: 200,
               elevation: 10,
               textColor: Colors.white,
-              onPressed: () {},
+              onPressed: () {
+                requestTrip(context, list[index]['tripid'].toString(),list[index]['host'].toString() );
+              },
               child: Text('Request Ride'),
             ),
           ),

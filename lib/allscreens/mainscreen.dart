@@ -8,11 +8,15 @@ import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import 'package:user_app/allscreens/loginscreen.dart';
+import 'package:user_app/allscreens/registrationscreen.dart';
 import 'package:user_app/allscreens/searchscreen.dart';
 import 'package:user_app/allwidgets/divider.dart';
 import 'package:user_app/assistants/requestAssistant.dart';
 import 'package:user_app/datahandler/appData.dart';
-import 'package:user_app/models/address.dart' as ad;
+import 'package:user_app/main.dart';
+import 'package:user_app/models/usermodel.dart';
+
+
 
 class MainScreen extends StatefulWidget {
 
@@ -35,6 +39,22 @@ class _MainScreenState extends State<MainScreen> {
   String _address;
   double bottomPaddingofMap = 0;
   Address ad;
+
+  getUserData() {
+    User user = FirebaseAuth.instance.currentUser;
+    userRef.doc(user.uid).get().then((value) {
+      setState(() {
+        currentUser =UserDetails.fromDocument(value);
+      });
+    });
+  }
+
+  @override
+  void initState() {
+    getUserData();
+    // TODO: implement initState
+    super.initState();
+  }
 
   void locatePosition()async{
     Position position = await Geolocator.getCurrentPosition(desiredAccuracy: LocationAccuracy.high);
@@ -69,6 +89,7 @@ class _MainScreenState extends State<MainScreen> {
     target: LatLng(37.42796133580664, -122.085749655962),
     zoom: 14.4746,
   );
+
 
 
   @override

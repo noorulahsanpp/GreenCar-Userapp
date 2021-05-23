@@ -147,7 +147,7 @@ class _SearchScreenState extends State<SearchScreen> {
                             color: Colors.blue
                           ),),
                           onPressed: (){
-                            Navigator.push(context, MaterialPageRoute(builder: (context)=> TimeLine()));
+                            Navigator.push(context, MaterialPageRoute(builder: (context)=> TimeLine(fromPlace: pickUpTextEditingController.text.trim().toUpperCase(),toPlace: dropOffTextEditingController.text.trim().toUpperCase(),)));
                           },
                         )
                       )

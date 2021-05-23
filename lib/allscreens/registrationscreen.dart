@@ -6,8 +6,13 @@ import 'package:flutter/material.dart';
 import 'package:user_app/allscreens/loginscreen.dart';
 import 'package:user_app/allscreens/mainscreen.dart';
 import 'package:user_app/allwidgets/progressdialog.dart';
+import 'package:user_app/main.dart';
+import 'package:user_app/models/usermodel.dart';
+import 'package:user_app/util/configmaps.dart';
 import 'package:user_app/util/firebaseutil.dart';
 import 'package:user_app/util/util.dart';
+
+UserDetails currentUser;
 
 class RegistrationScreen extends StatelessWidget {
   static const String idScreen = "register";
@@ -17,7 +22,6 @@ class RegistrationScreen extends StatelessWidget {
   TextEditingController _passwordTextEditingController =
       TextEditingController();
   DatabaseReference usersRef = FirebaseUtil.createDatabaseReference();
-  CollectionReference users = FirebaseFirestore.instance.collection('users');
 
   @override
   Widget build(BuildContext context) {
@@ -173,9 +177,18 @@ class RegistrationScreen extends StatelessWidget {
         "name": _nameTextEditingController.text.trim(),
         "email": _emailTextEditingController.text.trim(),
         "phone": _phoneTextEditingController.text.trim(),
+        "userid": user.uid,
+        "rating":"0",
       };
 
-      users.doc(user.uid).set(userDataMap).then((value) => print("User Added"))
+      userRef.doc(user.uid).set(userDataMap).then((value) async {
+
+      currentFirebaseUser = user;
+      DocumentSnapshot documentSnapshot = await userRef.doc(user.uid).get();
+
+      currentUser = UserDetails.fromDocument(documentSnapshot);
+
+      })
           .catchError((error) => print("Failed to add user: $error"));
       usersRef.child(user.uid).set(userDataMap);
       Util.displayToastMessage(

@@ -14,9 +14,11 @@ void main() async{
   await Firebase.initializeApp();
   runApp(MyApp());
 }
-CollectionReference<Map<String, dynamic>> driverReference = FirebaseFirestore.instance.collection("hosts");
+CollectionReference<Map<String, dynamic>> tripReference = FirebaseFirestore.instance.collection("trips");
 
 // DatabaseReference _databaseReference = FirebaseDatabase.instance.reference().child("users");
+
+CollectionReference userRef = FirebaseFirestore.instance.collection('users');
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
