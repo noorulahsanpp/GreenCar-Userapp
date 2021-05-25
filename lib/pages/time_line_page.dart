@@ -13,7 +13,6 @@ import 'package:vector_math/vector_math_64.dart' as vector;
 import 'package:flutter/material.dart';
 
 class TimeLine extends StatefulWidget {
-
   final String toPlace;
   final String fromPlace;
 
@@ -61,35 +60,47 @@ class _TimeLineState extends State<TimeLine> with TickerProviderStateMixin {
       setState(() {});
     });
   }
-  Future<void> requestTrip(BuildContext context, String tripid, String hostid) async {
 
+  Future<void> requestTrip(
+      BuildContext context, String tripid, String hostid) async {
     showDialog(
         context: context,
         barrierDismissible: false,
-        builder: (BuildContext context){
-          return ProgressDialog(message: "Setting Up, Please wait...",);
-        }
-    );
+        builder: (BuildContext context) {
+          return ProgressDialog(
+            message: "Setting Up, Please wait...",
+          );
+        });
 
     Map<String, dynamic> tripDataMap = {
       "riderid": currentUser.userid,
       "tripid": tripid,
       "ridername": currentUser.name,
-      "riderphone":currentUser.phone,
-      "riderrating":currentUser.rating,
-      "hostid":hostid,
+      "riderphone": currentUser.phone,
+      "riderrating": currentUser.rating,
+      "hostid": hostid,
     };
 
-    FirebaseFirestore.instance.collection('trips').doc(tripid).collection('request').add(tripDataMap).then((value) {
-      FirebaseFirestore.instance.collection("hosts").doc(hostid).collection('trips').doc(tripid).collection('requests').add(tripDataMap);
+    FirebaseFirestore.instance
+        .collection('trips')
+        .doc(tripid)
+        .collection('request')
+        .add(tripDataMap)
+        .then((value) {
+      FirebaseFirestore.instance
+          .collection("hosts")
+          .doc(hostid)
+          .collection('trips')
+          .doc(tripid)
+          .collection('requests')
+          .add(tripDataMap);
       Util.displayToastMessage(
           "Your Request has been created successfully", context);
-      Navigator.pushNamed(
-          context, MainScreen.idScreen);
+      Navigator.pushNamed(context, MainScreen.idScreen);
     }).catchError((error) => print("Failed to add request: $error"));
-
   }
-  Future<List<Location>> findPlace(String placeName) async{
+
+  Future<List<Location>> findPlace(String placeName) async {
     List<Location> locations;
     locations = await locationFromAddress(placeName);
     return locations;
@@ -111,7 +122,7 @@ class _TimeLineState extends State<TimeLine> with TickerProviderStateMixin {
     final size = MediaQuery.of(context).size;
     double altura = size.height * 0.6;
     listCars = _createCars();
-    _rideDetails = _createRide();
+    // _rideDetails = _createRide();
     return Scaffold(
       body: Stack(
         children: [
@@ -121,7 +132,8 @@ class _TimeLineState extends State<TimeLine> with TickerProviderStateMixin {
               height: size.height * 0.3,
               child: Image.asset('images/greencar.png')),
           StreamBuilder<QuerySnapshot>(
-              stream: tripReference.where("from_place", isEqualTo: widget.fromPlace)
+              stream: tripReference
+                  .where("from_place", isEqualTo: widget.fromPlace)
                   .orderBy("date")
                   .snapshots(),
               builder: (BuildContext context,
@@ -226,8 +238,6 @@ class _TimeLineState extends State<TimeLine> with TickerProviderStateMixin {
         ],
       ),
     );
-
-
   }
 
   RadialGradient _getBackground(
@@ -329,7 +339,7 @@ class _TimeLineState extends State<TimeLine> with TickerProviderStateMixin {
           alignment: Alignment.bottomCenter,
           color: Colors.transparent,
           child: Text(
-            listCars[index].name,
+            "₹${list[index]['shareprice']}",
             style: TextStyle(
                 color: textColor, fontSize: 50, fontFamily: 'JosefinSans'),
           ),
@@ -347,29 +357,30 @@ class _TimeLineState extends State<TimeLine> with TickerProviderStateMixin {
               elevation: 10,
               textColor: Colors.white,
               onPressed: () {
-                requestTrip(context, list[index]['tripid'].toString(),list[index]['host'].toString() );
+                requestTrip(context, list[index]['tripid'].toString(),
+                    list[index]['host'].toString());
               },
               child: Text('Request Ride'),
             ),
           ),
         ),
-        Container(
-          padding: EdgeInsets.all(20),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: MaterialButton(
-              color: Color.fromRGBO(43, 154, 214, 1),
-              height: 50,
-              minWidth: 200,
-              elevation: 10,
-              textColor: Colors.white,
-              onPressed: () {
-                //TODO : show TestDrive video (assets/videos/...)
-              },
-              child: Text('Contact'),
-            ),
-          ),
-        ),
+        // Container(
+        //   padding: EdgeInsets.all(20),
+        //   child: ClipRRect(
+        //     borderRadius: BorderRadius.circular(10),
+        //     child: MaterialButton(
+        //       color: Color.fromRGBO(43, 154, 214, 1),
+        //       height: 50,
+        //       minWidth: 200,
+        //       elevation: 10,
+        //       textColor: Colors.white,
+        //       onPressed: () {
+        //         //TODO : show TestDrive video (assets/videos/...)
+        //       },
+        //       child: Text('Contact'),
+        //     ),
+        //   ),
+        // ),
         SizedBox(
           height: lerpDouble(300, 20, doubleTweenAnimation.value),
         ),
@@ -550,61 +561,61 @@ List<Car> _createCars() {
   return lista;
 }
 
-List<RideDetails> _createRide() {
-  List<RideDetails> lista = [];
-
-  lista.add(
-    RideDetails(
-        id: 1, fromplace: 'Tirur', toplace: 'Calicut', date: '12/12/2000'),
-  );
-  lista.add(
-    RideDetails(
-        id: 2, fromplace: 'Tirur', toplace: 'Calicut', date: '12/12/2000'),
-  );
-  lista.add(
-    RideDetails(
-        id: 3, fromplace: 'Tirur', toplace: 'Calicut', date: '12/12/2000'),
-  );
-  lista.add(
-    RideDetails(
-        id: 4, fromplace: 'Tirur', toplace: 'Calicut', date: '12/12/2000'),
-  );
-  lista.add(
-    RideDetails(
-        id: 5, fromplace: 'Tirur', toplace: 'Calicut', date: '12/12/2000'),
-  );
-  lista.add(
-    RideDetails(
-        id: 6, fromplace: 'Tirur', toplace: 'Calicut', date: '12/12/2000'),
-  );
-  lista.add(
-    RideDetails(
-        id: 7, fromplace: 'Tirur', toplace: 'Calicut', date: '12/12/2000'),
-  );
-  lista.add(
-    RideDetails(
-        id: 8, fromplace: 'Tirur', toplace: 'Calicut', date: '12/12/2000'),
-  );
-  lista.add(
-    RideDetails(
-        id: 9, fromplace: 'Tirur', toplace: 'Calicut', date: '12/12/2000'),
-  );
-  lista.add(
-    RideDetails(
-        id: 10, fromplace: 'Tirur', toplace: 'Calicut', date: '12/12/2000'),
-  );
-  lista.add(
-    RideDetails(
-        id: 11, fromplace: 'Tirur', toplace: 'Calicut', date: '12/12/2000'),
-  );
-  lista.add(
-    RideDetails(
-        id: 12, fromplace: 'Tirur', toplace: 'Calicut', date: '12/12/2000'),
-  );
-  lista.add(
-    RideDetails(
-        id: 13, fromplace: 'Tirur', toplace: 'Calicut', date: '12/12/2000'),
-  );
-
-  return lista;
-}
+// List<RideDetails> _createRide() {
+//   List<RideDetails> lista = [];
+//
+//   lista.add(
+//     RideDetails(
+//         id: 1, fromplace: 'Tirur', toplace: 'Calicut', date: '12/12/2000'),
+//   );
+//   lista.add(
+//     RideDetails(
+//         id: 2, fromplace: 'Tirur', toplace: 'Calicut', date: '12/12/2000'),
+//   );
+//   lista.add(
+//     RideDetails(
+//         id: 3, fromplace: 'Tirur', toplace: 'Calicut', date: '12/12/2000'),
+//   );
+//   lista.add(
+//     RideDetails(
+//         id: 4, fromplace: 'Tirur', toplace: 'Calicut', date: '12/12/2000'),
+//   );
+//   lista.add(
+//     RideDetails(
+//         id: 5, fromplace: 'Tirur', toplace: 'Calicut', date: '12/12/2000'),
+//   );
+//   lista.add(
+//     RideDetails(
+//         id: 6, fromplace: 'Tirur', toplace: 'Calicut', date: '12/12/2000'),
+//   );
+//   lista.add(
+//     RideDetails(
+//         id: 7, fromplace: 'Tirur', toplace: 'Calicut', date: '12/12/2000'),
+//   );
+//   lista.add(
+//     RideDetails(
+//         id: 8, fromplace: 'Tirur', toplace: 'Calicut', date: '12/12/2000'),
+//   );
+//   lista.add(
+//     RideDetails(
+//         id: 9, fromplace: 'Tirur', toplace: 'Calicut', date: '12/12/2000'),
+//   );
+//   lista.add(
+//     RideDetails(
+//         id: 10, fromplace: 'Tirur', toplace: 'Calicut', date: '12/12/2000'),
+//   );
+//   lista.add(
+//     RideDetails(
+//         id: 11, fromplace: 'Tirur', toplace: 'Calicut', date: '12/12/2000'),
+//   );
+//   lista.add(
+//     RideDetails(
+//         id: 12, fromplace: 'Tirur', toplace: 'Calicut', date: '12/12/2000'),
+//   );
+//   lista.add(
+//     RideDetails(
+//         id: 13, fromplace: 'Tirur', toplace: 'Calicut', date: '12/12/2000'),
+//   );
+//
+//   return lista;
+// }

@@ -8,6 +8,8 @@ import 'package:user_app/allscreens/loginscreen.dart';
 import 'package:user_app/allscreens/mainscreen.dart';
 import 'package:user_app/allscreens/registrationscreen.dart';
 import 'package:user_app/datahandler/appData.dart';
+import 'package:user_app/pages/home/widget/homepagesam.dart';
+import 'package:user_app/util/configmaps.dart';
 
 void main() async{
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,6 +21,7 @@ CollectionReference<Map<String, dynamic>> tripReference = FirebaseFirestore.inst
 // DatabaseReference _databaseReference = FirebaseDatabase.instance.reference().child("users");
 
 CollectionReference userRef = FirebaseFirestore.instance.collection('users');
+
 
 class MyApp extends StatelessWidget {
   // This widget is the root of your application.
@@ -34,11 +37,12 @@ class MyApp extends StatelessWidget {
           primarySwatch: Colors.blue,
           visualDensity: VisualDensity.adaptivePlatformDensity,
         ),
-        initialRoute: FirebaseAuth.instance.currentUser == null ? LoginScreen.idScreen : MainScreen.idScreen,
+        initialRoute: FirebaseAuth.instance.currentUser == null ? LoginScreen.idScreen : HomePageSam.idScreen,
         routes: {
           RegistrationScreen.idScreen:(context) => RegistrationScreen(),
           LoginScreen.idScreen:(context) => LoginScreen(),
           MainScreen.idScreen:(context) => MainScreen(),
+          HomePageSam.idScreen:(context) => HomePageSam(),
         },
         home: LoginScreen(),
       ),

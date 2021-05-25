@@ -38,7 +38,7 @@ catch(exp){
     addr.Address locaddress = new addr.Address();
     locaddress.latitude = lat.toString();
     locaddress.longitude = lang.toString();
-    locaddress.placeName = add.first.thoroughfare;
+    locaddress.placeName = add.first.locality;
     // locaddress.placeFormattedAddress = add.first.addressLine;
 
     print("coordinated;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;${add.first.coordinates}");

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:user_app/allscreens/mainscreen.dart';
 import 'package:user_app/allscreens/registrationscreen.dart';
 import 'package:user_app/allwidgets/progressdialog.dart';
+import 'package:user_app/pages/home/widget/homepagesam.dart';
 import 'package:user_app/util/firebaseutil.dart';
 import 'package:user_app/util/util.dart';
 
@@ -140,7 +141,7 @@ class LoginScreen extends StatelessWidget {
         if (snap.value != null) {
 
           Navigator.pushNamedAndRemoveUntil(
-              context, MainScreen.idScreen, (route) => false);
+              context, HomePageSam.idScreen, (route) => false);
           Util.displayToastMessage("You're logged in", context);
         } else {
           _firebaseAuth.signOut();

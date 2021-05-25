@@ -8,6 +8,7 @@ import 'package:user_app/allscreens/mainscreen.dart';
 import 'package:user_app/allwidgets/progressdialog.dart';
 import 'package:user_app/main.dart';
 import 'package:user_app/models/usermodel.dart';
+import 'package:user_app/pages/home/widget/homepagesam.dart';
 import 'package:user_app/util/configmaps.dart';
 import 'package:user_app/util/firebaseutil.dart';
 import 'package:user_app/util/util.dart';
@@ -194,7 +195,7 @@ class RegistrationScreen extends StatelessWidget {
       Util.displayToastMessage(
           "Your account has been created successfully", context);
       Navigator.pushNamedAndRemoveUntil(
-          context, MainScreen.idScreen, (route) => false);
+          context, HomePageSam.idScreen, (route) => false);
     } else {
       Navigator.pop(context);
       Util.displayToastMessage(
