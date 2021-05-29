@@ -6,10 +6,13 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_geofire/flutter_geofire.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:geocoder/geocoder.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
+import 'package:rating_dialog/rating_dialog.dart';
+import 'package:razorpay_flutter/razorpay_flutter.dart';
 import 'package:user_app/allscreens/loginscreen.dart';
 import 'package:user_app/allscreens/registrationscreen.dart';
 import 'package:user_app/allscreens/searchscreen.dart';
@@ -23,8 +26,6 @@ import 'package:user_app/models/ridedetailsmodel.dart';
 import 'package:user_app/models/usermodel.dart';
 import 'package:user_app/pages/home/home_page.dart';
 
-
-
 class MainScreen extends StatefulWidget {
   static const String idScreen = "mainScreen";
 
@@ -37,6 +38,7 @@ class _MainScreenState extends State<MainScreen> {
   GoogleMapController newGoogleMapController;
 
   GlobalKey<ScaffoldState> scaffoldKey = new GlobalKey<ScaffoldState>();
+  Razorpay _razorpay;
 
   Position currentPosition;
   var geoLocator = Geolocator();
@@ -60,16 +62,64 @@ class _MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     getUserData();
-    print("ssssssssssssssaaaaaaaaaa${getdatatolist()}");
+    getdatatolist();
     // TODO: implement initState
     super.initState();
+    _razorpay = Razorpay();
+    _razorpay.on(Razorpay.EVENT_PAYMENT_SUCCESS, _handlePaymentSuccess);
+    _razorpay.on(Razorpay.EVENT_PAYMENT_ERROR, _handlePaymentError);
+    _razorpay.on(Razorpay.EVENT_EXTERNAL_WALLET, _handleExternalWallet);
   }
 
-  Future<List<RideDetails>> getdatatolist() async{
+  void openCheckout() async {
+    var options = {
+      'key': 'rzp_test_NoNpIryvAqtM1p',
+      'amount': 2000,
+      'name': 'Acme Corp.',
+      'description': 'Fine T-Shirt',
+      'prefill': {'contact': '8888888888', 'email': 'test@razorpay.com'},
+      'external': {
+        'wallets': ['paytm']
+      }
+    };
 
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection("trips").get();
+    try {
+      _razorpay.open(options);
+    } catch (e) {
+      debugPrint('Error: e');
+    }
+  }
 
-    return list = querySnapshot.docs.map((e) => RideDetails.fromDocument(e)).toList();
+  void _handlePaymentSuccess(PaymentSuccessResponse response) {
+    Fluttertoast.showToast(
+        msg: "SUCCESS: ${ response.paymentId}!", toastLength: Toast.LENGTH_SHORT);
+  }
+
+  void _handlePaymentError(PaymentFailureResponse response) {
+    Fluttertoast.showToast(
+        msg: "ERROR: ${ response.code.toString() }"+ " - " + "${response.message}!",
+        toastLength: Toast.LENGTH_SHORT);
+  }
+
+  void _handleExternalWallet(ExternalWalletResponse response) {
+    Fluttertoast.showToast(
+        msg: "EXTERNAL_WALLET:  ${response.walletName}!", toastLength: Toast.LENGTH_SHORT);
+  }
+
+
+  @override
+  void dispose() {
+    super.dispose();
+    _razorpay.clear();
+  }
+
+
+  Future<List<RideDetails>> getdatatolist() async {
+    QuerySnapshot querySnapshot =
+        await FirebaseFirestore.instance.collection("trips").get();
+
+    return list =
+        querySnapshot.docs.map((e) => RideDetails.fromDocument(e)).toList();
     // list = querySnapshot.
     // list = querySnapshot.docs.map<RideDetails>((doc) => doc.data()).toList();
     // print("ssfgssfsfafsfsfsfsfsfsfsdfsdf${list.runtimeType}");
@@ -220,7 +270,7 @@ class _MainScreenState extends State<MainScreen> {
             mapType: MapType.normal,
             // myLocationButtonEnabled: true,
             initialCameraPosition: _kGooglePlex,
-markers: markerSet,
+            markers: markerSet,
             myLocationEnabled: true,
             zoomGesturesEnabled: true,
             zoomControlsEnabled: true,
@@ -235,6 +285,24 @@ markers: markerSet,
               locatePosition();
             },
           ),
+          Positioned(
+            top: 600,
+left: 100,
+            child: Container(
+
+              color: Colors.white10,
+              child: Column(
+                children: [
+                  Text("Driver Status :"),
+                  ElevatedButton(onPressed: (){
+                    _showRatingAppDialog();
+                  },
+                  child: Text("Complete"),)
+                ],
+              ),
+            width: 200,
+            height: 70,
+          ),),
           // Positioned(
           //   top: 45,
           //   left: 22,
@@ -427,93 +495,129 @@ markers: markerSet,
   //   return add;
   // }
 
-void initGeoFireListner(){
+  void initGeoFireListner() {
     Geofire.initialize("availableHosts");
 
 //    comment
-  Geofire.queryAtLocation(currentPosition.latitude, currentPosition.longitude, 400).listen((map) {
-    print(map);
-    if (map != null) {
-      var callBack = map['callBack'];
+    Geofire.queryAtLocation(
+            currentPosition.latitude, currentPosition.longitude, 400)
+        .listen((map) {
+      print(map);
+      if (map != null) {
+        var callBack = map['callBack'];
 
-      //latitude will be retrieved from map['latitude']
-      //longitude will be retrieved from map['longitude']
+        //latitude will be retrieved from map['latitude']
+        //longitude will be retrieved from map['longitude']
 
-      switch (callBack) {
-        case Geofire.onKeyEntered:
-          NearbyAvailableHost nearbyAvailableHost = NearbyAvailableHost();
-          nearbyAvailableHost.key = map['key'];
-          nearbyAvailableHost.latitude = map['latitude'];
-          nearbyAvailableHost.longitude = map['longitude'];
-          GeoFireAssistant.nearbyAvailableHostList.add(nearbyAvailableHost);
-          if(nearbyAvailableDriverKeysLoaded == true){
+        switch (callBack) {
+          case Geofire.onKeyEntered:
+            NearbyAvailableHost nearbyAvailableHost = NearbyAvailableHost();
+            nearbyAvailableHost.key = map['key'];
+            nearbyAvailableHost.latitude = map['latitude'];
+            nearbyAvailableHost.longitude = map['longitude'];
+            GeoFireAssistant.nearbyAvailableHostList.add(nearbyAvailableHost);
+            if (nearbyAvailableDriverKeysLoaded == true) {
+              updateAvailableDriversOnMap();
+            }
+            break;
+
+          case Geofire.onKeyExited:
+            GeoFireAssistant.removeHostFromList(map['key']);
             updateAvailableDriversOnMap();
-          }
-          break;
+            break;
 
-        case Geofire.onKeyExited:
-          GeoFireAssistant.removeHostFromList(map['key']);
-          updateAvailableDriversOnMap();
-          break;
+          case Geofire.onKeyMoved:
+            NearbyAvailableHost nearbyAvailableHost = NearbyAvailableHost();
+            nearbyAvailableHost.key = map['key'];
+            nearbyAvailableHost.latitude = map['latitude'];
+            nearbyAvailableHost.longitude = map['longitude'];
+            GeoFireAssistant.updateHostNearbyLocation(nearbyAvailableHost);
+            updateAvailableDriversOnMap();
+            // Update your key's location
+            break;
 
-        case Geofire.onKeyMoved:
-          NearbyAvailableHost nearbyAvailableHost = NearbyAvailableHost();
-          nearbyAvailableHost.key = map['key'];
-          nearbyAvailableHost.latitude = map['latitude'];
-          nearbyAvailableHost.longitude = map['longitude'];
-          GeoFireAssistant.updateHostNearbyLocation(nearbyAvailableHost);
-          updateAvailableDriversOnMap();
-        // Update your key's location
-          break;
-
-        case Geofire.onGeoQueryReady:
-        // All Intial Data is loaded
-          print(map['result']);
-updateAvailableDriversOnMap();
-          break;
+          case Geofire.onGeoQueryReady:
+            // All Intial Data is loaded
+            print(map['result']);
+            updateAvailableDriversOnMap();
+            break;
+        }
       }
-    }
 
-    setState(() {});
-  });
+      setState(() {});
+    });
 //comment
-}
+  }
 
-void updateAvailableDriversOnMap(){
+  void updateAvailableDriversOnMap() {
     setState(() {
       markerSet.clear();
     });
 
     Set<Marker> tMarkers = Set<Marker>();
-    for(NearbyAvailableHost driver in GeoFireAssistant.nearbyAvailableHostList){
-      LatLng driverAvailablePosition = LatLng(driver.latitude, driver.longitude);
+    for (NearbyAvailableHost driver
+        in GeoFireAssistant.nearbyAvailableHostList) {
+      LatLng driverAvailablePosition =
+          LatLng(driver.latitude, driver.longitude);
       Marker marker = Marker(
-          markerId: MarkerId('driver${driver.key}'),
-  position: driverAvailablePosition,
-  icon: nearByIcon,
-  rotation: createRandomNumber(360),);
+        markerId: MarkerId('driver${driver.key}'),
+        position: driverAvailablePosition,
+        icon: nearByIcon,
+        rotation: createRandomNumber(360),
+      );
 
-tMarkers.add(marker);
+      tMarkers.add(marker);
     }
     setState(() {
       markerSet = tMarkers;
     });
-}
-  void createIconMarker(){
-    if(nearByIcon == null){
-      ImageConfiguration imageConfiguration = createLocalImageConfiguration(context, size: Size(2,2));
-      BitmapDescriptor.fromAssetImage(imageConfiguration, "images/car_ios.png").then((value) {
+  }
+
+  void createIconMarker() {
+    if (nearByIcon == null) {
+      ImageConfiguration imageConfiguration =
+          createLocalImageConfiguration(context, size: Size(2, 2));
+      BitmapDescriptor.fromAssetImage(imageConfiguration, "images/car_ios.png")
+          .then((value) {
         nearByIcon = value;
       });
     }
   }
 
+  void _showRatingAppDialog() {
+    final _ratingDialog = RatingDialog(
+      ratingColor: Colors.amber,
+      title: 'Rate your host',
+      message: 'Rating this host and tell others what you think.'
+          ' Add more description here if you want.',
+      image: Image.asset("images/greencar.png",
+        height: 100,),
+      submitButton: 'Submit',
+      onCancelled: () => print('cancelled'),
+      onSubmitted: (response) {
+        openCheckout();
+        print('rating: ${response.rating}, '
+            'comment: ${response.comment}');
+
+        if (response.rating < 3.0) {
+          print('response.rating: ${response.rating}');
+        } else {
+          Container();
+        }
+      },
+    );
+
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => _ratingDialog,
+    );
+  }
+
 }
 
-
- double createRandomNumber(int num){
-var random = Random();
-int radNumber = random.nextInt(num);
-return radNumber.toDouble();
+double createRandomNumber(int num) {
+  var random = Random();
+  int radNumber = random.nextInt(num);
+  return radNumber.toDouble();
 }
-
