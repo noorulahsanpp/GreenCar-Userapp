@@ -47,23 +47,41 @@ class _InformationState extends State<Information> {
       "hostid": hostid,
     };
 
-    FirebaseFirestore.instance
-        .collection('trips')
-        .doc(tripid)
-        .collection('request')
-        .add(tripDataMap)
-        .then((value) {
+    final QuerySnapshot result = await FirebaseFirestore.instance.collection("users").doc(currentUser.userid).collection("requests").where("tripid", isEqualTo: tripid).get();
+    final List<DocumentSnapshot> documents = result.docs;
+    if(documents.length>0){
+      Util.displayToastMessage(
+          "This ride has been booked already", context);
+      Navigator.pushNamed(context, HomePageSam.idScreen);
+    }
+    else{
       FirebaseFirestore.instance
-          .collection("hosts")
-          .doc(hostid)
           .collection('trips')
           .doc(tripid)
-          .collection('requests')
-          .add(tripDataMap);
-      Util.displayToastMessage(
-          "Your Request has been created successfully", context);
-      Navigator.pushNamed(context, HomePageSam.idScreen);
-    }).catchError((error) => print("Failed to add request: $error"));
+          .collection('request')
+          .add(tripDataMap)
+          .then((value) {
+        FirebaseFirestore.instance
+            .collection("hosts")
+            .doc(hostid)
+            .collection('trips')
+            .doc(tripid)
+            .collection('requests')
+            .add(tripDataMap).then((value) {
+          FirebaseFirestore.instance
+              .collection("users")
+              .doc(currentUser.userid)
+              .collection('requests')
+              .add(tripDataMap);
+        });
+        Util.displayToastMessage(
+            "Your Request has been created successfully", context);
+        Navigator.pushNamed(context, HomePageSam.idScreen);
+      }).catchError((error) => print("Failed to add request: $error"));
+    }
+
+
+
   }
 
   @override
@@ -131,7 +149,7 @@ class _InformationState extends State<Information> {
                               // ),
                               SizedBox(height: 8.0),
                               Text(
-                                widget.rideDetails.seats,
+                                widget.rideDetails.time,
                                 style: Theme.of(context).textTheme.button.copyWith(
                                     color: Colors.white70, fontSize: 14.0, fontWeight: FontWeight.w500),
                               ),

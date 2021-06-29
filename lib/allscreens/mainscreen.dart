@@ -25,6 +25,7 @@ import 'package:user_app/models/nearbyAvailableHost.dart';
 import 'package:user_app/models/ridedetailsmodel.dart';
 import 'package:user_app/models/usermodel.dart';
 import 'package:user_app/pages/home/home_page.dart';
+import 'package:user_app/util/util.dart';
 
 class MainScreen extends StatefulWidget {
   static const String idScreen = "mainScreen";
@@ -91,28 +92,31 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   void _handlePaymentSuccess(PaymentSuccessResponse response) {
+    _showRatingAppDialog();
     Fluttertoast.showToast(
-        msg: "SUCCESS: ${ response.paymentId}!", toastLength: Toast.LENGTH_SHORT);
+        msg: "SUCCESS: ${response.paymentId}!",
+        toastLength: Toast.LENGTH_SHORT);
   }
 
   void _handlePaymentError(PaymentFailureResponse response) {
     Fluttertoast.showToast(
-        msg: "ERROR: ${ response.code.toString() }"+ " - " + "${response.message}!",
+        msg: "ERROR: ${response.code.toString()}" +
+            " - " +
+            "${response.message}!",
         toastLength: Toast.LENGTH_SHORT);
   }
 
   void _handleExternalWallet(ExternalWalletResponse response) {
     Fluttertoast.showToast(
-        msg: "EXTERNAL_WALLET:  ${response.walletName}!", toastLength: Toast.LENGTH_SHORT);
+        msg: "EXTERNAL_WALLET:  ${response.walletName}!",
+        toastLength: Toast.LENGTH_SHORT);
   }
-
 
   @override
   void dispose() {
     super.dispose();
     _razorpay.clear();
   }
-
 
   Future<List<RideDetails>> getdatatolist() async {
     QuerySnapshot querySnapshot =
@@ -287,22 +291,24 @@ class _MainScreenState extends State<MainScreen> {
           ),
           Positioned(
             top: 600,
-left: 100,
+            left: 100,
             child: Container(
-
               color: Colors.white10,
               child: Column(
                 children: [
                   Text("Driver Status :"),
-                  ElevatedButton(onPressed: (){
-                    _showRatingAppDialog();
-                  },
-                  child: Text("Complete"),)
+                  ElevatedButton(
+                    onPressed: () {
+                      openCheckout();
+                    },
+                    child: Text("Complete"),
+                  )
                 ],
               ),
-            width: 200,
-            height: 70,
-          ),),
+              width: 200,
+              height: 70,
+            ),
+          ),
           // Positioned(
           //   top: 45,
           //   left: 22,
@@ -590,12 +596,14 @@ left: 100,
       title: 'Rate your host',
       message: 'Rating this host and tell others what you think.'
           ' Add more description here if you want.',
-      image: Image.asset("images/greencar.png",
-        height: 100,),
+      image: Image.asset(
+        "images/greencar.png",
+        height: 100,
+      ),
       submitButton: 'Submit',
       onCancelled: () => print('cancelled'),
       onSubmitted: (response) {
-        openCheckout();
+        saveRating(response.rating);
         print('rating: ${response.rating}, '
             'comment: ${response.comment}');
 
@@ -614,7 +622,13 @@ left: 100,
     );
   }
 
+  Future saveRating(int value){
+    FirebaseFirestore.instance.collection("hosts").doc("IINy71QkvAOgs3zgY22VGnq2bM82").update(<String, dynamic> { 'noofrating':FieldValue.increment(1), 'rating':FieldValue.increment(value) }).then((value) {
+      Util.displayToastMessage("Response successfully saved", context);
+    });
+  }
 }
+
 
 double createRandomNumber(int num) {
   var random = Random();

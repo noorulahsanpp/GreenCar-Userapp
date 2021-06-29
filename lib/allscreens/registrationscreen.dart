@@ -174,12 +174,13 @@ class RegistrationScreen extends StatelessWidget {
     }))
         .user;
     if (user != null) {
-      Map<String, String> userDataMap = {
+      Map<String, dynamic> userDataMap = {
         "name": _nameTextEditingController.text.trim(),
         "email": _emailTextEditingController.text.trim(),
         "phone": _phoneTextEditingController.text.trim(),
         "userid": user.uid,
-        "rating":"0",
+        "rating":5,
+        "noofrating":1,
       };
 
       userRef.doc(user.uid).set(userDataMap).then((value) async {
@@ -194,8 +195,11 @@ class RegistrationScreen extends StatelessWidget {
       usersRef.child(user.uid).set(userDataMap);
       Util.displayToastMessage(
           "Your account has been created successfully", context);
+      user.sendEmailVerification();
+      Util.displayToastMessage("Please verify your email", context);
+      FirebaseAuth.instance.signOut();
       Navigator.pushNamedAndRemoveUntil(
-          context, HomePageSam.idScreen, (route) => false);
+          context, LoginScreen.idScreen, (route) => false);
     } else {
       Navigator.pop(context);
       Util.displayToastMessage(

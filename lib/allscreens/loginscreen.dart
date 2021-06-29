@@ -6,6 +6,7 @@ import 'package:user_app/allscreens/mainscreen.dart';
 import 'package:user_app/allscreens/registrationscreen.dart';
 import 'package:user_app/allwidgets/progressdialog.dart';
 import 'package:user_app/pages/home/widget/homepagesam.dart';
+import 'package:user_app/util/configmaps.dart';
 import 'package:user_app/util/firebaseutil.dart';
 import 'package:user_app/util/util.dart';
 
@@ -118,28 +119,28 @@ class LoginScreen extends StatelessWidget {
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
 
   void loginAndAuthenticateUser(BuildContext context) async {
-
     showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext context){
-        return ProgressDialog(message: "Authenticating, Please wait...",);
-      }
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext context) {
+          return ProgressDialog(message: "Authenticating, Please wait...",);
+        }
     );
 
     final User user = (await _firebaseAuth
-            .signInWithEmailAndPassword(
-                email: _emailTextEditingController.text,
-                password: _passwordTextEditingController.text)
-            .catchError((errMsg) {
-              Navigator.pop(context);
+        .signInWithEmailAndPassword(
+        email: _emailTextEditingController.text,
+        password: _passwordTextEditingController.text)
+        .catchError((errMsg) {
+      Navigator.pop(context);
       Util.displayToastMessage("Error: " + errMsg.toString(), context);
     }))
         .user;
+    if(user.emailVerified) {
     if (user != null) {
       usersRef.child(user.uid).once().then((DataSnapshot snap) {
         if (snap.value != null) {
-
+          currentFirebaseUser = user;
           Navigator.pushNamedAndRemoveUntil(
               context, HomePageSam.idScreen, (route) => false);
           Util.displayToastMessage("You're logged in", context);
@@ -154,6 +155,10 @@ class LoginScreen extends StatelessWidget {
     } else {
       Navigator.pop(context);
       Util.displayToastMessage("Error occured. Failed to sign in.", context);
+    }
+  }
+    else{
+      Util.displayToastMessage("Please verify your email", context);
     }
   }
 }

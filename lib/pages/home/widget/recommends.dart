@@ -23,9 +23,9 @@ class _RecommendsState extends State<Recommends> {
           child: ListView.builder(
             physics: BouncingScrollPhysics(),
             scrollDirection: Axis.horizontal,
-            itemCount: list.length,
+            itemCount: todayList.length,
             itemBuilder: (_, index) =>
-                ItemRecommend(rideDetails: list[index], ii: index,),
+                ItemRecommend(rideDetails: todayList[index], ii: index,),
           ),
         ),
       ),

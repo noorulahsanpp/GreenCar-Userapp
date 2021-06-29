@@ -8,6 +8,7 @@ class RideDetails {
   final String seats;
   final String shareprice;
   final String hostid;
+  final String time;
 
   RideDetails({
       this.tripid,
@@ -16,7 +17,8 @@ class RideDetails {
       this.date,
       this.seats,
       this.shareprice,
-      this.hostid});
+      this.hostid,
+  this.time});
 
   factory RideDetails.fromDocument(DocumentSnapshot doc){
     return RideDetails(
@@ -27,6 +29,7 @@ class RideDetails {
       shareprice: doc['shareprice'],
       hostid: doc['host'],
       tripid: doc['tripid'],
+      time: doc['time'],
     );
   }
 }

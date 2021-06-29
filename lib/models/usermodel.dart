@@ -6,8 +6,9 @@ class UserDetails{
   String email;
   String phone;
   String location;
-  String rating;
-  UserDetails({this.userid, this.name, this.email, this.phone, this.location, this.rating});
+  int rating;
+  int noofrating;
+  UserDetails({this.userid, this.name, this.email, this.phone, this.location, this.rating, this.noofrating});
 
   factory UserDetails.fromDocument(DocumentSnapshot doc){
     return UserDetails(
@@ -16,6 +17,7 @@ class UserDetails{
       email:doc['email'],
       phone:doc['phone'],
       rating: doc['rating'],
+        noofrating: doc['noofrating'],
     );
   }
 }

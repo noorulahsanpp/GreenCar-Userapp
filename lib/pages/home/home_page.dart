@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:user_app/allscreens/registrationscreen.dart';
 import 'package:user_app/assistants/requestAssistant.dart';
@@ -18,7 +19,9 @@ import 'package:user_app/pages/home/widget/search.dart';
 import 'package:user_app/pages/home/widget/search_button.dart';
 import 'package:user_app/pages/home/widget/select_category.dart';
 import 'package:flutter/material.dart';
+
 var list;
+var todayList;
 
 class HomePage extends StatefulWidget {
   const HomePage({Key key}) : super(key: key);
@@ -34,14 +37,40 @@ class _HomePageState extends State<HomePage> {
   var geoLocator = Geolocator();
   String _address;
   double bottomPaddingofMap = 0;
+
   // Address ad;
 
+  Future<List<RideDetails>> getdatatolist() async {
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection("trips")
+        .where("from_place", isEqualTo: 'TIRUR').where("status", isNotEqualTo: "over")
+        .get();
 
-  Future<List<RideDetails>> getdatatolist() async{
+    if(querySnapshot.size<=0){
+      return todayList = [];
+    }
 
-    QuerySnapshot querySnapshot = await FirebaseFirestore.instance.collection("trips").get();
+    return list =
+        querySnapshot.docs.map((e) => RideDetails.fromDocument(e)).toList();
+    // list = querySnapshot.
+    // list = querySnapshot.docs.map<RideDetails>((doc) => doc.data()).toList();
+    // print("ssfgssfsfafsfsfsfsfsfsfsdfsdf${list.runtimeType}");
+  }
 
-    return list = querySnapshot.docs.map((e) => RideDetails.fromDocument(e)).toList();
+  Future<List<RideDetails>> getTodayRideToList() async {
+    final DateFormat formatter = DateFormat('dd-MM-yyyy');
+    DateTime now = new DateTime.now();
+    String dd = formatter.format(now);
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection("trips")
+        .where('date', isEqualTo: dd)
+        .where("from_place", isEqualTo: 'TIRUR').where("status", isNotEqualTo: "over")
+        .get();
+    if(querySnapshot.size<=0){
+      return todayList = [];
+    }
+    return todayList =
+        querySnapshot.docs.map((e) => RideDetails.fromDocument(e)).toList();
     // list = querySnapshot.
     // list = querySnapshot.docs.map<RideDetails>((doc) => doc.data()).toList();
     // print("ssfgssfsfafsfsfsfsfsfsfsdfsdf${list.runtimeType}");
@@ -58,6 +87,7 @@ class _HomePageState extends State<HomePage> {
       _address = address;
     });
   }
+
   getUserData() {
     User user = FirebaseAuth.instance.currentUser;
     userRef.doc(user.uid).get().then((value) {
@@ -66,19 +96,23 @@ class _HomePageState extends State<HomePage> {
       });
     });
   }
+
   @override
   void initState() {
     getUserData();
     print("ssssssssssssssaaaaaaaaaa${getdatatolist()}");
+    getTodayRideToList();
     locatePosition();
     // TODO: implement initState
     super.initState();
   }
-@override
+
+  @override
   void dispose() {
     // TODO: implement dispose
     super.dispose();
   }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -98,9 +132,9 @@ class _HomePageState extends State<HomePage> {
                   SearchButton(),
                   TitlePage(title: "Starting Today"),
                   Recommends(),
-                  TitlePage(title: "From ${Provider.of<AppData>(context)
-                      .pickUpLocation
-                      .placeName}"),
+                  TitlePage(
+                      title:
+                          "From ${Provider.of<AppData>(context).pickUpLocation.placeName}"),
                   Offers(),
                   SliverToBoxAdapter(child: const SizedBox(height: 60)),
                 ],
@@ -113,6 +147,3 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
-
-
-

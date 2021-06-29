@@ -93,7 +93,13 @@ class _TimeLineState extends State<TimeLine> with TickerProviderStateMixin {
           .collection('trips')
           .doc(tripid)
           .collection('requests')
-          .add(tripDataMap);
+          .add(tripDataMap).then((value) {
+        FirebaseFirestore.instance
+            .collection("users")
+            .doc(currentUser.userid)
+            .collection('requests')
+            .add(tripDataMap);
+      });
       Util.displayToastMessage(
           "Your Request has been created successfully", context);
       Navigator.pushNamed(context, MainScreen.idScreen);
@@ -415,8 +421,8 @@ class _TimeLineState extends State<TimeLine> with TickerProviderStateMixin {
               ),
               DataRow(
                 cells: <DataCell>[
-                  DataCell(Text('Fuel consumption')),
-                  DataCell(Text('13.4 l/100 km')),
+                  DataCell(Text('Time')),
+                  DataCell(Text(list[index]['time'])),
                 ],
               ),
               DataRow(
